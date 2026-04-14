@@ -17,9 +17,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
-    /* GLOBAL NO-ITALICS MANDATE */
+    /* GLOBAL NO-ITALICS AND NO-CAPS MANDATE */
     * {
       font-style: normal !important;
+      text-transform: none !important;
     }
 
     body {
@@ -66,11 +67,10 @@
       line-height: 0.8;
       letter-spacing: -0.04em;
       color: rgba(255, 255, 255, 1);
-      text-transform: capitalise;
     }
     @media (min-width: 768px) {
       .marquee-text {
-        font-size: 10vw;
+        font-size: 24vw;
       }
     }
 
@@ -97,37 +97,55 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    /* Transparent Media Containers */
     .video-container {
       position: relative;
       padding-bottom: 56.25%; /* 16:9 */
       height: 0;
       overflow: hidden;
       border-radius: 12px;
-      background: #000;
+      background: transparent;
     }
     @media (min-width: 768px) {
       .video-container {
         border-radius: 20px;
       }
     }
+    .video-container.has-bg { background: #f3f4f6; }
 
-    /* Mobile Video Container (Cropped & Enlarged to 9:16) */
+    /* 4:3 Aspect Ratio Container */
+    .aspect-4-3 {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      border-radius: 12px;
+      background: transparent;
+      margin: 0 auto;
+    }
+
+    /* Mobile Container (Cropped & Enlarged to 9:16) */
     .mobile-video-box {
       position: relative;
       width: 100%;
-      max-width: 320px;
+      max-width: 280px;
       aspect-ratio: 9 / 16;
       overflow: hidden;
       border-radius: 24px;
-      background: #000;
+      background: transparent;
       margin-left: auto;
       margin-right: auto;
     }
 
-    .mobile-video-box iframe, .video-container iframe {
+    .mobile-video-box iframe, .video-container iframe, .aspect-4-3 iframe,
+    .mobile-video-box img, .video-container img, .aspect-4-3 img {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
+      border: none;
+      background: transparent;
+      object-fit: cover;
     }
 
     .lenis-stopped { overflow: hidden !important; }
@@ -160,6 +178,48 @@
     .animate-marquee {
       animation: marquee 15s linear infinite;
     }
+
+    /* Menu Text Cycling Hide */
+    .toggle-text-mask {
+      clip-path: inset(0 0 0 0);
+    }
+
+    /* PillNav Desktop Styles */
+    .pill-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 9999px;
+        padding: 0.5rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    .pill-item .hover-circle {
+        position: absolute;
+        left: 50%;
+        background-color: #ccff00;
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+        will-change: transform;
+    }
+    .pill-item .label-stack {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        height: 1.2em;
+        line-height: 1.2em;
+    }
+    .pill-item .pill-label, .pill-item .pill-label-hover {
+        display: block;
+        text-align: center;
+        will-change: transform, opacity;
+    }
+    .pill-item .pill-label { color: inherit; }
+    .pill-item .pill-label-hover { color: #006039; position: absolute; top: 0; left: 0; width: 100%; opacity: 0; }
   </style>
 </head>
 <body class="selection:bg-[#ccff00] selection:text-[#006039]">
@@ -174,22 +234,38 @@
     </div>
   </div>
 
-  <!-- Fullscreen Menu -->
-  <div id="menu-overlay" class="fixed inset-0 z-[60] bg-[#006039] text-[#ccff00] flex flex-col justify-center px-8 md:px-20 pointer-events-none pb-12 md:pb-0" onclick="if(event.target === this) toggleMenu()">
-    <div class="max-w-[1600px] mx-auto w-full pointer-events-auto mt-20 md:mt-0">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-10">
-        <div class="md:col-span-8 flex flex-col gap-4 md:gap-6">
-          <span class="text-xs uppercase tracking-widest opacity-40 font-bold mb-2 md:mb-4">Navigation</span>
-          <a href="#work" class="scroll-link text-[12vw] md:text-[8vw] font-medium tracking-tighter uppercase block leading-[0.85] hover:translate-x-4 transition-transform">Work</a>
-          <a href="#about" class="scroll-link text-[12vw] md:text-[8vw] font-medium tracking-tighter uppercase block leading-[0.85] hover:translate-x-4 transition-transform">About</a>
-          <a href="#contact" class="scroll-link text-[12vw] md:text-[8vw] font-medium tracking-tighter uppercase block leading-[0.85] hover:translate-x-4 transition-transform">Contact</a>
-        </div>
-        <div class="md:col-span-4 flex flex-col justify-end items-start md:items-end gap-2 text-xs md:text-sm opacity-60 uppercase tracking-widest font-bold mt-10 md:mt-0">
-          <span>Bengaluru, India</span>
-          <span>© Abinesh 2026</span>
-        </div>
-      </div>
-    </div>
+  <!-- Staggered Menu Container -->
+  <div id="staggered-menu" class="fixed inset-0 z-[90] pointer-events-none flex justify-end overflow-hidden">
+      <!-- Background Layers -->
+      <div class="sm-layer absolute inset-0 bg-[#ccff00] w-full h-full"></div>
+      <div class="sm-layer absolute inset-0 bg-[#0e0e0e] w-full h-full"></div>
+      
+      <!-- Main Navigation Panel -->
+      <aside class="sm-panel absolute inset-0 w-full h-full bg-[#006039] flex flex-col justify-center px-8 md:px-20 text-[#ccff00]">
+          <div class="max-w-[1600px] mx-auto w-full mt-20 md:mt-0">
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-10">
+                  <div class="md:col-span-8 flex flex-col gap-2 md:gap-4">
+                      <span class="sm-fade-item text-xs tracking-widest opacity-40 font-bold mb-4">Navigation</span>
+                      
+                      <!-- Staggered Links wrapped in overflow hidden for text reveal -->
+                      <div class="overflow-hidden py-1">
+                          <a href="#work" class="sm-link-item scroll-link text-[12vw] md:text-[8vw] font-medium tracking-tighter block leading-[0.85] hover:translate-x-4 transition-transform origin-bottom-left will-change-transform">Work</a>
+                      </div>
+                      <div class="overflow-hidden py-1">
+                          <a href="#about" class="sm-link-item scroll-link text-[12vw] md:text-[8vw] font-medium tracking-tighter block leading-[0.85] hover:translate-x-4 transition-transform origin-bottom-left will-change-transform">About</a>
+                      </div>
+                      <div class="overflow-hidden py-1">
+                          <a href="#contact" class="sm-link-item scroll-link text-[12vw] md:text-[8vw] font-medium tracking-tighter block leading-[0.85] hover:translate-x-4 transition-transform origin-bottom-left will-change-transform">Contact</a>
+                      </div>
+                  </div>
+                  
+                  <div class="md:col-span-4 flex flex-col justify-end items-start md:items-end gap-2 text-xs md:text-sm opacity-60 tracking-widest font-bold mt-10 md:mt-0 sm-fade-item">
+                      <span>Bengaluru, India</span>
+                      <span>© Abinesh 2026</span>
+                  </div>
+              </div>
+          </div>
+      </aside>
   </div>
 
   <div id="cursor" class="fixed top-0 left-0 w-3 h-3 bg-[#ccff00] rounded-full pointer-events-none z-[9999] -translate-x-1/2 -translate-y-1/2 hidden md:block" style="mix-blend-difference: difference;"></div>
@@ -197,29 +273,63 @@
   <div id="app" class="min-h-screen">
     
     <!-- Header -->
-    <nav id="navbar" class="fixed top-0 left-0 w-full py-6 md:py-8 text-white transition-colors duration-500">
+    <nav id="navbar" class="fixed top-0 left-0 w-full py-6 md:py-8 text-white transition-colors duration-500 z-[100]">
       <div class="max-w-[1600px] mx-auto px-6 md:px-10 grid grid-cols-4 md:grid-cols-12 items-center">
         <div class="col-span-3 md:col-span-3 flex items-center font-medium">
           <div class="nav-accent text-[#ccff00] transition-colors duration-500">
-            <span class="text-sm md:text-base">© Abinesh</span>
+            <span class="text-sm md:text-base">© Code by Abinesh</span>
           </div>
         </div>
 
         <div class="col-span-1 md:col-span-9 flex justify-end items-center relative h-10">
-          <div id="desktop-menu" class="hidden md:flex gap-10 font-medium absolute right-0">
-            <div class="magnetic"><a href="#work" class="scroll-link nav-link hover:text-[#ccff00] transition-colors uppercase tracking-widest text-sm block">Work</a></div>
-            <div class="magnetic"><a href="#about" class="scroll-link nav-link hover:text-[#ccff00] transition-colors uppercase tracking-widest text-sm block">About</a></div>
-            <div class="magnetic"><a href="#contact" class="scroll-link nav-link hover:text-[#ccff00] transition-colors uppercase tracking-widest text-sm block">Contact</a></div>
-          </div>
-          <div id="hamburger-btn" class="nav-accent flex text-[#ccff00] cursor-pointer absolute right-0 z-10" onclick="toggleMenu()">
-            <div class="magnetic p-2 bg-[#0e0e0e]/20 backdrop-blur-sm md:bg-transparent rounded-full transition-all">
-                <svg id="hamburger-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line id="line1" x1="4" x2="20" y1="8" y2="8"></line>
-                    <line id="line2" x1="4" x2="20" y1="12" y2="12"></line>
-                    <line id="line3" x1="4" x2="20" y1="16" y2="16"></line>
-                </svg>
+          
+          <!-- Desktop PillNav Menu -->
+          <div id="desktop-menu" class="hidden md:flex gap-2 font-medium absolute right-0 mr-16">
+            <div class="magnetic">
+                <a href="#work" class="pill-item nav-link scroll-link tracking-widest text-xs transition-colors duration-300 block">
+                    <span class="hover-circle" aria-hidden="true"></span>
+                    <span class="label-stack">
+                        <span class="pill-label">Work</span>
+                        <span class="pill-label-hover" aria-hidden="true">Work</span>
+                    </span>
+                </a>
+            </div>
+            <div class="magnetic">
+                <a href="#about" class="pill-item nav-link scroll-link tracking-widest text-xs transition-colors duration-300 block">
+                    <span class="hover-circle" aria-hidden="true"></span>
+                    <span class="label-stack">
+                        <span class="pill-label">About</span>
+                        <span class="pill-label-hover" aria-hidden="true">About</span>
+                    </span>
+                </a>
+            </div>
+            <div class="magnetic">
+                <a href="#contact" class="pill-item nav-link scroll-link tracking-widest text-xs transition-colors duration-300 block">
+                    <span class="hover-circle" aria-hidden="true"></span>
+                    <span class="label-stack">
+                        <span class="pill-label">Contact</span>
+                        <span class="pill-label-hover" aria-hidden="true">Contact</span>
+                    </span>
+                </a>
             </div>
           </div>
+          
+          <!-- Staggered Menu Toggle Button -->
+          <div id="hamburger-btn" class="nav-accent flex items-center gap-4 text-[#ccff00] cursor-pointer absolute right-0 z-10 transition-colors" onclick="toggleMenu()">
+            <div class="toggle-text-mask overflow-hidden h-5 relative w-14 hidden md:block pointer-events-none select-none">
+                <div id="toggle-text-inner" class="flex flex-col text-xs tracking-widest font-bold absolute top-0 left-0 w-full transition-transform">
+                    <span class="h-5 flex items-center justify-end">Menu</span>
+                    <span class="h-5 flex items-center justify-end">Close</span>
+                </div>
+            </div>
+            <div class="magnetic p-2 bg-[#0e0e0e]/20 backdrop-blur-sm md:bg-transparent rounded-full transition-all w-10 h-10 flex items-center justify-center pointer-events-auto relative">
+                <span id="sm-icon" class="relative w-4 h-4 flex items-center justify-center">
+                    <span class="absolute w-full h-[2px] bg-current rounded-full"></span>
+                    <span class="absolute w-[2px] h-full bg-current rounded-full"></span>
+                </span>
+            </div>
+          </div>
+
         </div>
       </div>
     </nav>
@@ -271,14 +381,16 @@
         <div class="max-w-[1600px] mx-auto px-6 md:px-10">
           <div class="grid grid-cols-12 gap-8 md:gap-12">
             <div class="col-span-12 md:col-span-8">
-              <p id="about-text" class="text-3xl md:text-5xl lg:text-[3.5rem] leading-[1.15] font-medium tracking-tight uppercase">
-turning complex requirements into clear, scalable design solutions that drive measurable impact.              </p>
+              <p id="about-text" class="scroll-reveal text-3xl md:text-5xl lg:text-[3.5rem] leading-[1.15] font-medium tracking-tight">
+                Helping brands to stand out in the digital era. Together we will set the new status quo. No nonsense, always on the edge.
+              </p>
             </div>
             <div class="col-span-12 md:col-span-4 flex flex-col justify-between items-start">
               <p class="text-base md:text-lg opacity-80 leading-relaxed mt-4 md:mt-0">
-With a background in game design, I bring systems thinking and behavioral insight, creating intuitive experiences that align user needs with strategic goals.              </p>
+                The combination of my passion for design, code & interaction positions me in a unique place in the web design world.
+              </p>
               <div class="magnetic mt-10 md:mt-12 w-full md:w-auto flex justify-start">
-                <button onclick="openAbout()" class="bg-[#006039] text-white w-28 h-28 md:w-40 md:h-40 rounded-full flex items-center justify-center font-medium hover:bg-[#ccff00] hover:text-[#006039] transition-all duration-300 shadow-2xl text-sm md:text-xl uppercase tracking-tighter cursor-pointer">About me</button>
+                <button onclick="openAbout()" class="bg-[#006039] text-white w-28 h-28 md:w-40 md:h-40 rounded-full flex items-center justify-center font-medium hover:bg-[#ccff00] hover:text-[#006039] transition-all duration-300 shadow-2xl text-sm md:text-xl tracking-tighter cursor-pointer">About me</button>
               </div>
             </div>
           </div>
@@ -287,27 +399,34 @@ With a background in game design, I bring systems thinking and behavioral insigh
 
       <section id="work" class="bg-white pt-16 md:pt-24 pb-20 md:pb-32 relative z-[50]">
         <div class="max-w-[1600px] mx-auto px-6 md:px-10 mb-8 md:mb-16">
-            <h2 class="text-[10px] md:text-xs uppercase tracking-[0.4em] font-bold opacity-40 text-[#006039]">Work</h2>
+            <h2 class="text-[10px] md:text-xs tracking-[0.4em] font-bold opacity-40 text-[#006039]">Work</h2>
         </div>
 
         <div id="work-modal" class="fixed top-0 left-0 w-[300px] h-[350px] pointer-events-none z-[100] overflow-hidden hidden md:block scale-0 opacity-0 rounded-lg shadow-2xl">
           <div id="work-modal-images" class="w-full h-full relative flex flex-col">
-            <img src="https://i.ibb.co/j9kjYhJW/41i-M7pq-HJYL-AC-UF1000-1000-QL80.jpg" class="w-full h-full object-cover shrink-0" alt="SANZO WADA"/>
-            <img src="https://images.unsplash.com/photo-1605106702734-205df224ecce?q=80&w=800" class="w-full h-full object-cover shrink-0" alt="SILO"/>
-            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800" class="w-full h-full object-cover shrink-0" alt="KINESIS"/>
+            <!-- Modal Images for respective case studies -->
+            <img src="https://i.ibb.co/j9kjYhJW/41i-M7pq-HJYL-AC-UF1000-1000-QL80.jpg" class="w-full h-full object-cover shrink-0" alt="Sanzo Wada"/>
+            
+            <!-- INSTRUCTION: Create an 'images' folder in your GitHub repo. Save your thumbnails there using the EXACT names below. -->
+            <!-- Recommended Thumbnail Size: 600x800 pixels (or a 3:4 portrait ratio) -->
+            <img src="images/pet-rescue-thumbnail.jpg" class="w-full h-full object-cover shrink-0 object-top" alt="Pet Rescue Application"/>
+            <img src="images/project-1-thumbnail.jpg" class="w-full h-full object-cover shrink-0 object-top" alt="Placeholder 1"/>
+            <img src="images/project-2-thumbnail.jpg" class="w-full h-full object-cover shrink-0 object-top" alt="Placeholder 2"/>
+            <img src="images/project-3-thumbnail.jpg" class="w-full h-full object-cover shrink-0 object-top" alt="Placeholder 3"/>
           </div>
         </div>
 
         <div class="w-full">
+          <!-- Case Study 1: Sanzo Wada -->
           <div class="work-row group border-t border-gray-100 py-8 md:py-16 cursor-pointer relative overflow-hidden transition-colors hover:text-white" data-index="0" data-case="sanzo-wada">
             <div class="absolute inset-0 bg-[#006039] -translate-x-full group-hover:translate-x-0 transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"></div>
             <div class="relative z-10 px-6 md:px-10 grid grid-cols-12 items-center gap-4 md:gap-6">
                <div class="col-span-12 md:col-span-2 text-xs md:text-xl opacity-50 group-hover:opacity-100 font-medium mb-2 md:mb-0">2024</div>
                <div class="col-span-10 md:col-span-5 flex flex-col justify-center">
-                  <h3 class="work-title text-2xl md:text-4xl lg:text-5xl font-medium tracking-tighter uppercase leading-[1.05]">A Dictionary of Color Combinations</h3>
+                  <h3 class="work-title text-2xl md:text-4xl lg:text-5xl font-medium tracking-tighter leading-[1.05]">A Dictionary of Color Combinations</h3>
                </div>
                <div class="hidden md:block col-span-4 text-sm md:text-base opacity-50 group-hover:opacity-100 font-medium leading-tight">
-                  Digital Color Archive<br/><span class="text-[10px] uppercase opacity-60 tracking-widest font-bold mt-1 inline-block">Utility / Preservation</span>
+                  Digital Color Archive<br/><span class="text-[10px] opacity-60 tracking-widest font-bold mt-1 inline-block">Utility / Preservation</span>
                </div>
                <div class="col-span-2 md:col-span-1 flex justify-end">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-30 group-hover:opacity-100 transition-all group-hover:translate-x-1 md:w-8 md:h-8"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
@@ -315,21 +434,74 @@ With a background in game design, I bring systems thinking and behavioral insigh
             </div>
           </div>
           
-          <div class="work-row group border-t border-b border-gray-100 py-8 md:py-16 cursor-pointer relative overflow-hidden transition-colors hover:text-white" data-index="1">
+          <!-- Case Study 2: Pet Rescue -->
+          <div class="work-row group border-t border-gray-100 py-8 md:py-16 cursor-pointer relative overflow-hidden transition-colors hover:text-white" data-index="1" data-case="pet-rescue">
             <div class="absolute inset-0 bg-[#006039] -translate-x-full group-hover:translate-x-0 transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"></div>
             <div class="relative z-10 px-6 md:px-10 grid grid-cols-12 items-center gap-4 md:gap-6">
                <div class="col-span-12 md:col-span-2 text-xs md:text-xl opacity-50 group-hover:opacity-100 font-medium mb-2 md:mb-0">2024</div>
                <div class="col-span-10 md:col-span-5">
-                  <h3 class="work-title text-2xl md:text-4xl lg:text-5xl font-medium tracking-tighter uppercase leading-[1.05]">THE SILO</h3>
+                  <h3 class="work-title text-2xl md:text-4xl lg:text-5xl font-medium tracking-tighter leading-[1.05]">Pet rescue application for Bluecross</h3>
                </div>
                <div class="hidden md:block col-span-4 text-sm md:text-base opacity-50 group-hover:opacity-100 font-medium leading-tight">
-                  Interaction Design<br/><span class="text-[10px] uppercase opacity-60 tracking-widest font-bold mt-1 inline-block">Immersive Experience</span>
+                  Ui / Ux Design<br/><span class="text-[10px] opacity-60 tracking-widest font-bold mt-1 inline-block">Academic Project</span>
                </div>
                <div class="col-span-2 md:col-span-1 flex justify-end">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-30 group-hover:opacity-100 transition-all group-hover:translate-x-1 md:w-8 md:h-8"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
                </div>
             </div>
           </div>
+
+          <!-- Placeholder Project 1 -->
+          <div class="work-row group border-t border-gray-100 py-8 md:py-16 cursor-pointer relative overflow-hidden transition-colors hover:text-white" data-index="2" data-case="placeholder-1">
+            <div class="absolute inset-0 bg-[#006039] -translate-x-full group-hover:translate-x-0 transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"></div>
+            <div class="relative z-10 px-6 md:px-10 grid grid-cols-12 items-center gap-4 md:gap-6">
+               <div class="col-span-12 md:col-span-2 text-xs md:text-xl opacity-50 group-hover:opacity-100 font-medium mb-2 md:mb-0">2024 - 2025</div>
+               <div class="col-span-10 md:col-span-5 flex flex-col justify-center">
+                  <h3 class="work-title text-2xl md:text-4xl lg:text-5xl font-medium tracking-tighter leading-[1.05]">Project Title 01</h3>
+               </div>
+               <div class="hidden md:block col-span-4 text-sm md:text-base opacity-50 group-hover:opacity-100 font-medium leading-tight">
+                  Project Category<br/><span class="text-[10px] opacity-60 tracking-widest font-bold mt-1 inline-block">Tag 1 / Tag 2</span>
+               </div>
+               <div class="col-span-2 md:col-span-1 flex justify-end">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-30 group-hover:opacity-100 transition-all group-hover:translate-x-1 md:w-8 md:h-8"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+               </div>
+            </div>
+          </div>
+
+          <!-- Placeholder Project 2 -->
+          <div class="work-row group border-t border-gray-100 py-8 md:py-16 cursor-pointer relative overflow-hidden transition-colors hover:text-white" data-index="3" data-case="placeholder-2">
+            <div class="absolute inset-0 bg-[#006039] -translate-x-full group-hover:translate-x-0 transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"></div>
+            <div class="relative z-10 px-6 md:px-10 grid grid-cols-12 items-center gap-4 md:gap-6">
+               <div class="col-span-12 md:col-span-2 text-xs md:text-xl opacity-50 group-hover:opacity-100 font-medium mb-2 md:mb-0">2024 - 2025</div>
+               <div class="col-span-10 md:col-span-5 flex flex-col justify-center">
+                  <h3 class="work-title text-2xl md:text-4xl lg:text-5xl font-medium tracking-tighter leading-[1.05]">Project Title 02</h3>
+               </div>
+               <div class="hidden md:block col-span-4 text-sm md:text-base opacity-50 group-hover:opacity-100 font-medium leading-tight">
+                  Project Category<br/><span class="text-[10px] opacity-60 tracking-widest font-bold mt-1 inline-block">Tag 1 / Tag 2</span>
+               </div>
+               <div class="col-span-2 md:col-span-1 flex justify-end">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-30 group-hover:opacity-100 transition-all group-hover:translate-x-1 md:w-8 md:h-8"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+               </div>
+            </div>
+          </div>
+
+          <!-- Placeholder Project 3 -->
+          <div class="work-row group border-t border-b border-gray-100 py-8 md:py-16 cursor-pointer relative overflow-hidden transition-colors hover:text-white" data-index="4" data-case="placeholder-3">
+            <div class="absolute inset-0 bg-[#006039] -translate-x-full group-hover:translate-x-0 transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"></div>
+            <div class="relative z-10 px-6 md:px-10 grid grid-cols-12 items-center gap-4 md:gap-6">
+               <div class="col-span-12 md:col-span-2 text-xs md:text-xl opacity-50 group-hover:opacity-100 font-medium mb-2 md:mb-0">2024 - 2025</div>
+               <div class="col-span-10 md:col-span-5 flex flex-col justify-center">
+                  <h3 class="work-title text-2xl md:text-4xl lg:text-5xl font-medium tracking-tighter leading-[1.05]">Project Title 03</h3>
+               </div>
+               <div class="hidden md:block col-span-4 text-sm md:text-base opacity-50 group-hover:opacity-100 font-medium leading-tight">
+                  Project Category<br/><span class="text-[10px] opacity-60 tracking-widest font-bold mt-1 inline-block">Tag 1 / Tag 2</span>
+               </div>
+               <div class="col-span-2 md:col-span-1 flex justify-end">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-30 group-hover:opacity-100 transition-all group-hover:translate-x-1 md:w-8 md:h-8"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+               </div>
+            </div>
+          </div>
+
         </div>
       </section>
     </main>
@@ -343,22 +515,22 @@ With a background in game design, I bring systems thinking and behavioral insigh
               <div class="w-12 h-12 md:w-24 md:h-24 rounded-full bg-[#ccff00]/10 flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6 md:w-12 md:h-12 animate-[spin_6s_linear_infinite] text-[#ccff00]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" /></svg>
               </div>
-              <h2 class="text-[16vw] md:text-[8vw] font-medium tracking-tighter uppercase leading-[0.8]">Let's work</h2>
+              <h2 class="scroll-reveal text-[16vw] md:text-[8vw] font-medium tracking-tighter leading-[0.8]">Let's work</h2>
             </div>
-            <h2 class="text-[16vw] md:text-[8vw] font-medium tracking-tighter uppercase leading-[0.8] text-[#ccff00] ml-16 md:ml-32 mt-2 md:mt-0">together</h2>
+            <h2 class="scroll-reveal text-[16vw] md:text-[8vw] font-medium tracking-tighter leading-[0.8] text-[#ccff00] ml-16 md:ml-32 mt-2 md:mt-0">together</h2>
           </div>
           <div class="col-span-4 md:col-span-4 flex flex-col gap-4 md:gap-6 md:items-end justify-start mt-8 md:mt-0">
             <div class="magnetic w-full md:w-auto">
-              <a href="mailto:abineshdusti2602@gmail.com"" class="flex items-center justify-center whitespace-nowrap text-base md:text-xl font-medium border border-white/20 rounded-full px-6 py-4 md:px-8 md:py-6 hover:bg-[#ccff00] hover:text-[#006039] hover:border-[#ccff00] transition-all duration-300 w-full">abineshdustin2602@gmail.com</a>
+              <a href="tel:+919876543210" class="flex items-center justify-center whitespace-nowrap text-base md:text-xl font-medium border border-white/20 rounded-full px-6 py-4 md:px-8 md:py-6 hover:bg-[#ccff00] hover:text-[#006039] hover:border-[#ccff00] transition-all duration-300 w-full">+91 98765 43210</a>
             </div>
             <div class="magnetic w-full md:w-auto">
-              <a href="https://wa.me/916382091309" target="_blank" class="flex items-center justify-center whitespace-nowrap text-base md:text-xl font-medium border border-white/20 rounded-full px-6 py-4 md:px-8 md:py-6 hover:bg-[#ccff00] hover:text-[#006039] hover:border-[#ccff00] transition-all duration-300 w-full">WhatsApp Me</a>
+              <a href="https://wa.me/919876543210" target="_blank" class="flex items-center justify-center whitespace-nowrap text-base md:text-xl font-medium border border-white/20 rounded-full px-6 py-4 md:px-8 md:py-6 hover:bg-[#ccff00] hover:text-[#006039] hover:border-[#ccff00] transition-all duration-300 w-full">WhatsApp Me</a>
             </div>
           </div>
         </div>
       </div>
       <div class="w-full mt-auto pt-10 border-t border-white/10 opacity-40">
-        <div class="max-w-[1600px] mx-auto px-6 md:px-10 flex flex-col md:flex-row justify-between gap-6 md:gap-4 text-[10px] uppercase tracking-[0.2em] font-medium">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 flex flex-col md:flex-row justify-between gap-6 md:gap-4 text-[10px] tracking-[0.2em] font-medium">
             <span>© Abinesh 2026</span>
             <div class="flex gap-6 md:gap-8">
                 <a href="#" class="hover:text-[#ccff00]">Twitter</a>
@@ -370,21 +542,21 @@ With a background in game design, I bring systems thinking and behavioral insigh
     </footer>
   </div>
 
-  <!-- About / Resume -->
+  <!-- About / Resume Overlay -->
   <div id="about-view" class="case-study-view bg-[#006039] text-white" data-lenis-prevent>
     <div class="sticky top-0 z-[1100] bg-[#006039]/90 backdrop-blur-md border-b border-white/10 py-4 md:py-6">
         <div class="max-w-[1600px] mx-auto px-6 md:px-10 flex justify-between items-center">
-            <button onclick="closeAbout()" class="flex items-center gap-2 group text-[10px] md:text-xs uppercase tracking-widest font-bold text-[#ccff00] cursor-pointer">
+            <button onclick="closeAbout()" class="flex items-center gap-2 group text-[10px] md:text-xs tracking-widest font-bold text-[#ccff00] cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-1 transition-transform md:w-4 md:h-4"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                 Back to site
             </button>
-            <span class="text-[8px] md:text-[10px] uppercase tracking-[0.3em] font-bold opacity-50 text-[#ccff00]">Curriculum Vitae</span>
+            <span class="text-[8px] md:text-[10px] tracking-[0.3em] font-bold opacity-50 text-[#ccff00]">Curriculum Vitae</span>
         </div>
     </div>
 
     <div class="max-w-[1600px] mx-auto px-6 md:px-10 py-16 md:py-32">
-        <h1 class="text-[16vw] md:text-[8vw] font-medium tracking-tighter uppercase leading-[0.8] mb-6 md:mb-8 text-[#ccff00]">Abinesh<br/>Kumar</h1>
-        <div class="flex flex-wrap gap-4 md:gap-6 text-xs md:text-base font-medium opacity-80 mb-16 md:mb-24 tracking-wide uppercase">
+        <h1 class="text-[16vw] md:text-[8vw] font-medium tracking-tighter leading-[0.8] mb-6 md:mb-8 text-[#ccff00]">Abinesh<br/>Kumar</h1>
+        <div class="flex flex-wrap gap-4 md:gap-6 text-xs md:text-base font-medium opacity-80 mb-16 md:mb-24 tracking-wide">
             <a href="mailto:abineshdustin2602@gmail.com" class="hover:text-[#ccff00] transition-colors break-all font-bold tracking-widest">abineshdustin2602@gmail.com</a>
             <span class="hidden md:inline">|</span>
             <a href="tel:+916382091309" class="hover:text-[#ccff00] transition-colors font-bold tracking-widest">+91 6382091309</a>
@@ -395,23 +567,23 @@ With a background in game design, I bring systems thinking and behavioral insigh
         <div class="grid grid-cols-12 gap-y-16 md:gap-y-24 gap-x-8 pb-32 md:pb-40">
             <div class="col-span-12 md:col-span-4 flex flex-col gap-12 md:gap-16">
                 <div>
-                    <h3 class="text-[10px] md:text-xs uppercase tracking-widest font-bold mb-6 md:mb-8 opacity-50 text-[#ccff00]">Education</h3>
+                    <h3 class="text-[10px] md:text-xs tracking-widest font-bold mb-6 md:mb-8 opacity-50 text-[#ccff00]">Education</h3>
                     <div class="mb-8">
-                        <h4 class="text-lg md:text-xl font-medium mb-1 uppercase">National Institute of Fashion Technology</h4>
+                        <h4 class="text-lg md:text-xl font-medium mb-1">National Institute of Fashion Technology</h4>
                         <p class="text-xs md:text-sm opacity-70 mb-2">Masters in Design (GPA: 8.1/10)</p>
-                        <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#ccff00]">Aug 2026 — Bengaluru</span>
+                        <span class="text-[10px] md:text-xs font-bold tracking-widest text-[#ccff00]">Aug 2026 — Bengaluru</span>
                     </div>
                     <div>
-                        <h4 class="text-lg md:text-xl font-medium mb-1 uppercase">Jain University</h4>
+                        <h4 class="text-lg md:text-xl font-medium mb-1">Jain University</h4>
                         <p class="text-xs md:text-sm opacity-70 mb-2">Bachelors in Game Design (CGPA: 9.0/10)</p>
-                        <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#ccff00]">May 2022 — Bengaluru</span>
+                        <span class="text-[10px] md:text-xs font-bold tracking-widest text-[#ccff00]">May 2022 — Bengaluru</span>
                     </div>
                 </div>
 
                 <div>
-                    <h3 class="text-[10px] md:text-xs uppercase tracking-widest font-bold mb-6 md:mb-8 opacity-50 text-[#ccff00]">Technologies & Skills</h3>
+                    <h3 class="text-[10px] md:text-xs tracking-widest font-bold mb-6 md:mb-8 opacity-50 text-[#ccff00]">Technologies & Skills</h3>
                     <p class="text-sm md:text-base font-medium leading-relaxed mb-6">
-                        Photoshop, Illustrator, After Effects, Blender 3D, Autodesk Maya, AutoCAD, Unreal Engine, HTML, CSS, Unity Engine, MS Office Suite.
+                        Photoshop, Illustrator, After Effects, Blender 3D, Autodesk Maya, AutoCAD, Unreal Engine, Html, Css, Unity Engine, MS Office Suite.
                     </p>
                     <p class="text-xs md:text-sm opacity-70 leading-relaxed mb-6">
                         <strong class="text-white">Core Competencies:</strong> Search Engine Optimization (SEO), Design Documentation, Presentation Management.
@@ -427,8 +599,8 @@ With a background in game design, I bring systems thinking and behavioral insigh
                             <svg viewBox="0 0 100 100" class="w-full h-full text-[#ccff00] overflow-visible">
                                 <path id="langPath" d="M 50, 50 m -36, 0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" fill="none" />
                                 <text fill="currentColor">
-                                    <textPath href="#langPath" startOffset="0" textLength="226" lengthAdjust="spacingAndGlyphs" class="text-[8px] md:text-[9px] uppercase font-bold tracking-widest">
-                                        ENGLISH • TAMIL • HINDI • MALAYALAM • 
+                                    <textPath href="#langPath" startOffset="0" textLength="226" lengthAdjust="spacingAndGlyphs" class="text-[8px] md:text-[9px] font-bold tracking-widest">
+                                        English • Tamil • Hindi • Malayalam • 
                                     </textPath>
                                 </text>
                             </svg>
@@ -445,15 +617,15 @@ With a background in game design, I bring systems thinking and behavioral insigh
             </div>
 
             <div class="col-span-12 md:col-span-7 md:col-start-6">
-                <h3 class="text-[10px] md:text-xs uppercase tracking-widest font-bold mb-6 md:mb-8 opacity-50 text-[#ccff00]">Work Experience</h3>
+                <h3 class="text-[10px] md:text-xs tracking-widest font-bold mb-6 md:mb-8 opacity-50 text-[#ccff00]">Work Experience</h3>
                 
                 <div class="mb-12 border-t border-white/20 pt-8 md:pt-10">
                     <div class="flex flex-col md:flex-row md:items-end justify-between mb-4 md:mb-6 gap-2 md:gap-4">
                         <div>
-                            <h4 class="text-2xl md:text-4xl font-medium tracking-tighter uppercase mb-1">Khiladi Pro</h4>
-                            <p class="text-base md:text-lg opacity-80">UI Design & Graphic Design Intern</p>
+                            <h4 class="text-2xl md:text-4xl font-medium tracking-tighter mb-1">Khiladi Pro</h4>
+                            <p class="text-base md:text-lg opacity-80">Ui / Ux Design & Graphic Design Intern</p>
                         </div>
-                        <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#ccff00] whitespace-nowrap">Jun 2025 - Aug 2025</span>
+                        <span class="text-[10px] md:text-xs font-bold tracking-widest text-[#ccff00] whitespace-nowrap">Jun 2025 - Aug 2025</span>
                     </div>
                     <ul class="text-sm md:text-lg opacity-80 leading-relaxed space-y-3 list-disc pl-5">
                         <li>Worked on the design of the structure and interface of AI-powered skill reports for U9 footballers.</li>
@@ -465,10 +637,10 @@ With a background in game design, I bring systems thinking and behavioral insigh
                 <div class="border-t border-white/20 pt-8 md:pt-10">
                     <div class="flex flex-col md:flex-row md:items-end justify-between mb-4 md:mb-6 gap-2 md:gap-4">
                         <div>
-                            <h4 class="text-2xl md:text-4xl font-medium tracking-tighter uppercase mb-1">Econfinity LLP</h4>
+                            <h4 class="text-2xl md:text-4xl font-medium tracking-tighter mb-1">Econfinity LLP</h4>
                             <p class="text-base md:text-lg opacity-80">Graphic Designer</p>
                         </div>
-                        <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#ccff00] whitespace-nowrap">Aug 2020 - 2022</span>
+                        <span class="text-[10px] md:text-xs font-bold tracking-widest text-[#ccff00] whitespace-nowrap">Aug 2020 - 2022</span>
                     </div>
                     <p class="text-sm md:text-lg opacity-80 leading-relaxed mb-4 md:mb-6 font-medium">
                         Econfinity is an online repository of free information on economics, with the aim of teaching economics to all.
@@ -484,83 +656,83 @@ With a background in game design, I bring systems thinking and behavioral insigh
     </div>
   </div>
 
-  <!-- Case Study FAB -->
+  <!-- Shared Case Study FAB -->
   <div id="cs-fab" class="fixed bottom-4 right-4 md:bottom-12 md:right-12 z-[1200] opacity-0 scale-0 pointer-events-none">
-      <a href="https://abinesh-k26.github.io/Sanzo-Wada-Color-Combos/" target="_blank" class="magnetic w-20 h-20 md:w-32 md:h-32 bg-[#ccff00] text-[#006039] rounded-full flex flex-col items-center justify-center transition-colors duration-300 hover:bg-[#006039] hover:text-[#ccff00] shadow-2xl group block">
-          <span class="text-[9px] md:text-xs font-bold uppercase tracking-widest text-center leading-tight mb-0.5 md:mb-1 pointer-events-none">Live<br class="hidden md:block"/>Project</span>
+      <a href="#" target="_blank" class="magnetic w-20 h-20 md:w-32 md:h-32 bg-[#ccff00] text-[#006039] rounded-full flex flex-col items-center justify-center transition-colors duration-300 hover:bg-[#006039] hover:text-[#ccff00] shadow-2xl group block">
+          <span class="text-[9px] md:text-xs font-bold tracking-widest text-center leading-tight mb-0.5 md:mb-1 pointer-events-none">Live<br class="hidden md:block"/>Proj.</span>
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform pointer-events-none md:w-4 md:h-4"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
       </a>
   </div>
 
-  <!-- Case Study Overlay -->
+  <!-- CASE STUDY: Sanzo Wada -->
   <div id="sanzo-wada-case" class="case-study-view" data-lenis-prevent>
     <div class="sticky top-0 z-[1100] bg-white/90 backdrop-blur-md border-b border-[#006039]/10 py-4 md:py-6">
         <div class="max-w-[1600px] mx-auto px-6 md:px-10 flex justify-between items-center">
-            <button onclick="closeCaseStudy()" class="flex items-center gap-2 group text-[10px] md:text-xs uppercase tracking-widest font-bold text-[#006039] hover:text-[#ccff00] transition-colors cursor-pointer">
+            <button onclick="closeCaseStudy()" class="flex items-center gap-2 group text-[10px] md:text-xs tracking-widest font-bold text-[#006039] hover:text-[#ccff00] transition-colors cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-1 transition-transform md:w-4 md:h-4"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                 Back to works
             </button>
-            <span class="text-[8px] md:text-[10px] uppercase tracking-[0.3em] font-bold opacity-50 text-[#006039]">Print Design Case Study</span>
+            <span class="text-[8px] md:text-[10px] tracking-[0.3em] font-bold opacity-50 text-[#006039]">Print Design Case Study</span>
         </div>
     </div>
 
     <div class="pb-0">
         <div class="max-w-[1600px] mx-auto px-6 md:px-10 pt-16 md:pt-32">
             <div class="mb-12 md:mb-24">
-                <h1 class="text-[14vw] md:text-[6vw] font-bold tracking-tighter uppercase leading-[0.9] mb-6 md:mb-8 cs-reveal text-[#006039]">Sanzo Wada<br/><span class="text-[#006039] opacity-40">Color utility</span></h1>
-                <p class="text-xl md:text-4xl font-medium tracking-tight opacity-80 text-[#006039] max-w-4xl cs-reveal leading-snug uppercase">
+                <h1 class="text-[14vw] md:text-[6vw] font-bold tracking-tighter leading-[0.9] mb-6 md:mb-8 cs-reveal text-[#006039]">Sanzo Wada<br/><span class="text-[#006039] opacity-40">Color utility</span></h1>
+                <p class="scroll-reveal text-xl md:text-4xl font-medium tracking-tight opacity-80 text-[#006039] max-w-4xl leading-snug">
                     Translating a 1930s physical masterpiece into a high-performance digital utility for modern print workflows.
                 </p>
             </div>
             
-            <div class="video-container mb-16 md:mb-32 shadow-xl md:shadow-2xl cs-reveal">
-                <iframe src="https://player.vimeo.com/video/1169201912?background=1&autoplay=1&muted=1&loop=1&autopause=0&badge=0&player_id=0&app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" title="Sanzo Wada Opening"></iframe>
+            <div class="video-container mb-16 md:mb-32 cs-reveal">
+                <iframe src="https://player.vimeo.com/video/1169201912?background=1&autoplay=1&muted=1&loop=1&autopause=0&badge=0&player_id=0&app_id=58479&transparent=1" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" title="Sanzo Wada Opening"></iframe>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-20 md:mb-32 border-t border-[#006039]/20 pt-8 md:pt-12 cs-reveal">
                 <div>
-                    <span class="block text-[8px] md:text-[10px] uppercase tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Role</span>
-                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039] uppercase">Web Development<br/>Archival</span>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Role</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Web Development<br/>Archival</span>
                 </div>
                 <div>
-                    <span class="block text-[8px] md:text-[10px] uppercase tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Timeline</span>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Timeline</span>
                     <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">4 Weeks<br/>2024</span>
                 </div>
                 <div>
-                    <span class="block text-[8px] md:text-[10px] uppercase tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Tools</span>
-                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">HTML, CSS<br/>Vanilla JS</span>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Tools</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Html, Css<br/>Vanilla Js</span>
                 </div>
                 <div>
-                    <span class="block text-[8px] md:text-[10px] uppercase tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Context</span>
-                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039] uppercase">Self-Initiated</span>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Context</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Self-Initiated</span>
                 </div>
             </div>
 
-            <div class="grid grid-cols-12 gap-6 md:gap-8 mb-20 md:mb-32 cs-reveal">
+            <div class="grid grid-cols-12 gap-6 md:gap-8 mb-20 md:mb-32">
                 <div class="col-span-12 md:col-span-4">
-                    <h3 class="text-2xl md:text-4xl font-bold tracking-tighter uppercase mb-4 md:mb-6 text-[#006039]"><span class="text-[#006039] opacity-30">01.</span> The Challenge</h3>
+                    <h3 class="scroll-reveal text-2xl md:text-4xl font-bold tracking-tighter mb-4 md:mb-6 text-[#006039]"><span class="text-[#006039] opacity-30">01.</span> The Challenge</h3>
                 </div>
-                <div class="col-span-12 md:col-span-8 md:col-start-5 text-base md:text-2xl font-medium leading-relaxed opacity-80 text-[#006039] uppercase">
-                    Browsing hundreds of color combinations in physical print is a beautifully tactile experience, but highly impractical for modern digital workflows. Translating these historical swatches into HEX equivalents manually and testing them creates a tedious bottleneck for print designers.
+                <div class="col-span-12 md:col-span-8 md:col-start-5 text-base md:text-2xl font-medium leading-relaxed opacity-80 text-[#006039]">
+                    <p class="scroll-reveal">Browsing hundreds of color combinations in physical print is a beautifully tactile experience, but highly impractical for modern digital workflows. Translating these historical swatches into HEX equivalents manually and testing them creates a tedious bottleneck for print designers.</p>
                 </div>
             </div>
         </div>
 
-        <!-- BREAKOUT SECTION: Swiss Block Color Wheel (Inverted Colors) -->
+        <!-- BREAKOUT SECTION -->
         <div class="w-full bg-[#006039] py-20 md:py-32 my-12 md:my-20">
             <div class="max-w-[1600px] mx-auto px-6 md:px-10">
                 <div class="grid grid-cols-12 gap-6 md:gap-12 items-center">
-                    <div class="col-span-12 md:col-span-5 cs-reveal">
-                        <h3 class="text-2xl md:text-5xl font-bold tracking-tighter uppercase mb-4 md:mb-8 text-[#ccff00]">
+                    <div class="col-span-12 md:col-span-5">
+                        <h3 class="scroll-reveal text-2xl md:text-5xl font-bold tracking-tighter mb-4 md:mb-8 text-[#ccff00]">
                             <span class="opacity-50">02.</span> Swiss Block Wheel
                         </h3>
-                        <p class="text-base md:text-xl font-medium leading-relaxed opacity-90 text-white mb-8 md:mb-0 uppercase">
+                        <p class="scroll-reveal text-base md:text-xl font-medium leading-relaxed opacity-90 text-white mb-8 md:mb-0">
                             To elevate the utility beyond a simple gallery, I engineered an interactive color wheel inspired by the grid-based layout of Swiss International Style. This block-style interface allows users to dynamically filter and select functional color combinations with modernist precision.
                         </p>
                     </div>
                     <div class="col-span-12 md:col-span-7 cs-reveal flex justify-center md:justify-end">
-                        <div class="mobile-video-box shadow-2xl ring-1 ring-white/10">
-                            <iframe src="https://player.vimeo.com/video/1169215035?background=1&autoplay=1&muted=1&loop=1&autopause=0&badge=0&player_id=0&app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" title="Swiss Block Demo"></iframe>
+                        <div class="mobile-video-box">
+                            <iframe src="https://player.vimeo.com/video/1169215035?background=1&autoplay=1&muted=1&loop=1&autopause=0&badge=0&player_id=0&app_id=58479&transparent=1" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" title="Swiss Block Demo"></iframe>
                         </div>
                     </div>
                 </div>
@@ -568,27 +740,27 @@ With a background in game design, I bring systems thinking and behavioral insigh
         </div>
 
         <div class="max-w-[1600px] mx-auto px-6 md:px-10 pb-16 md:pb-24">
-            <div class="grid grid-cols-12 gap-6 md:gap-8 cs-reveal">
+            <div class="grid grid-cols-12 gap-6 md:gap-8">
                 <div class="col-span-12 md:col-span-4">
-                    <h3 class="text-2xl md:text-4xl font-bold tracking-tighter uppercase mb-4 md:mb-6 text-[#006039]"><span class="text-[#006039] opacity-30">03.</span> Execution</h3>
+                    <h3 class="scroll-reveal text-2xl md:text-4xl font-bold tracking-tighter mb-4 md:mb-6 text-[#006039]"><span class="text-[#006039] opacity-30">03.</span> Execution</h3>
                 </div>
                 <div class="col-span-12 md:col-span-8 md:col-start-5">
-                    <p class="text-base md:text-2xl font-medium leading-relaxed opacity-80 text-[#006039] mb-8 md:mb-12 uppercase">
+                    <p class="scroll-reveal text-base md:text-2xl font-medium leading-relaxed opacity-80 text-[#006039] mb-8 md:mb-12">
                         I developed a lightweight web application tailored for rapid extraction. The interface relies entirely on vanilla JavaScript and CSS to render hundreds of interactive color nodes seamlessly.
                     </p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 pt-8 md:pt-12 border-t border-[#006039]/20 text-[#006039]">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 pt-8 md:pt-12 border-t border-[#006039]/20 text-[#006039] cs-reveal">
                         <div>
-                            <h4 class="text-xs md:text-sm font-bold uppercase tracking-widest opacity-60 mb-3 md:mb-4">Layout Architecture</h4>
+                            <h4 class="text-xs md:text-sm font-bold tracking-widest opacity-60 mb-3 md:mb-4">Layout Architecture</h4>
                             <p class="text-sm md:text-lg opacity-90 leading-relaxed font-medium mb-8">The layout respects the breathing room required for accurate visual contrast judgment. The grid framework directly mirrors the spatial rhythm of the original 1930s typesetting.</p>
-                            <div class="mobile-video-box shadow-xl border border-[#006039]/10">
-                                <iframe src="https://player.vimeo.com/video/1169216282?background=1&autoplay=1&muted=1&loop=1&autopause=0&badge=0&player_id=0&app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" title="Layout Demo"></iframe>
+                            <div class="mobile-video-box">
+                                <iframe src="https://player.vimeo.com/video/1169216282?background=1&autoplay=1&muted=1&loop=1&autopause=0&badge=0&player_id=0&app_id=58479&transparent=1" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" title="Layout Demo"></iframe>
                             </div>
                         </div>
                         <div>
-                            <h4 class="text-xs md:text-sm font-bold uppercase tracking-widest opacity-60 mb-3 md:mb-4">Micro-Interactions</h4>
+                            <h4 class="text-xs md:text-sm font-bold tracking-widest opacity-60 mb-3 md:mb-4">Micro-Interactions</h4>
                             <p class="text-sm md:text-lg opacity-90 leading-relaxed font-medium mb-8">Tactile feedback was integrated directly through CSS and simple JS. Copying a HEX code triggers a fluid tooltip and subtle color pulse, assuring the user without disrupting their workflow.</p>
-                            <div class="mobile-video-box shadow-xl border border-[#006039]/10">
-                                <iframe src="https://player.vimeo.com/video/1169216269?background=1&autoplay=1&muted=1&loop=1&autopause=0&badge=0&player_id=0&app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" title="Interaction Demo"></iframe>
+                            <div class="mobile-video-box">
+                                <iframe src="https://player.vimeo.com/video/1169216269?background=1&autoplay=1&muted=1&loop=1&autopause=0&badge=0&player_id=0&app_id=58479&transparent=1" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" title="Interaction Demo"></iframe>
                             </div>
                         </div>
                     </div>
@@ -598,11 +770,251 @@ With a background in game design, I bring systems thinking and behavioral insigh
         
         <div class="w-full bg-[#ccff00] py-8 md:py-12 mt-12 overflow-hidden text-[#006039] cs-reveal relative z-10">
             <div class="w-[200%] flex animate-marquee">
-                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter uppercase whitespace-nowrap">
-                    <span>FIGMA</span><span>•</span><span>HTML</span><span>•</span><span>CSS</span><span>•</span><span>JS</span><span>•</span>
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Figma</span><span>•</span><span>Html</span><span>•</span><span>Css</span><span>•</span><span>Js</span><span>•</span>
                 </div>
-                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter uppercase whitespace-nowrap">
-                    <span>FIGMA</span><span>•</span><span>HTML</span><span>•</span><span>CSS</span><span>•</span><span>JS</span><span>•</span>
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Figma</span><span>•</span><span>Html</span><span>•</span><span>Css</span><span>•</span><span>Js</span><span>•</span>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- CASE STUDY 2: Pet Rescue -->
+  <div id="pet-rescue-case" class="case-study-view" data-lenis-prevent>
+    <div class="sticky top-0 z-[1100] bg-white/90 backdrop-blur-md border-b border-[#006039]/10 py-4 md:py-6">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 flex justify-between items-center">
+            <button onclick="closeCaseStudy()" class="flex items-center gap-2 group text-[10px] md:text-xs tracking-widest font-bold text-[#006039] hover:text-[#ccff00] transition-colors cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-1 transition-transform md:w-4 md:h-4"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Back to works
+            </button>
+            <span class="text-[8px] md:text-[10px] tracking-[0.3em] font-bold opacity-50 text-[#006039]">Ui / Ux Case Study</span>
+        </div>
+    </div>
+
+    <div class="pb-0">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 pt-16 md:pt-32">
+            <div class="mb-12 md:mb-24">
+                <h1 class="text-[14vw] md:text-[6vw] font-bold tracking-tighter leading-[0.9] mb-6 md:mb-8 cs-reveal text-[#006039]">Pet rescue application<br/><span class="text-[#006039] opacity-40">for Bluecross</span></h1>
+                <p class="scroll-reveal text-xl md:text-4xl font-medium tracking-tight opacity-80 text-[#006039] max-w-4xl leading-snug">
+                    An empathetic, user-centric mobile application designed to streamline the animal adoption and rescue process.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-16 md:mb-24 border-t border-[#006039]/20 pt-8 md:pt-12 cs-reveal">
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Role</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Ui / Ux Design</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Timeline</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">4 weeks<br/>2024</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Tools</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Figma<br/>Illustrator</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Context</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Academic Project</span>
+                </div>
+            </div>
+
+            <!-- Full Static Showcase Image Container -->
+            <!-- INSTRUCTION: Save your full presentation board as 'pet-rescue-board.jpg' inside your 'images' folder -->
+            <div class="w-full cs-reveal mb-16 md:mb-32 shadow-xl md:shadow-2xl rounded-xl md:rounded-2xl overflow-hidden border border-[#006039]/10 bg-[#f3f4f6]">
+                <img src="images/pet-rescue-board.jpg" alt="Pet Rescue Application Presentation Board" class="w-full h-auto block" />
+            </div>
+        </div>
+        
+        <div class="w-full bg-[#ccff00] py-8 md:py-12 mt-12 overflow-hidden text-[#006039] cs-reveal relative z-10">
+            <div class="w-[200%] flex animate-marquee">
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Figma</span><span>•</span><span>Research</span><span>•</span><span>Prototyping</span><span>•</span><span>Ui/Ux</span><span>•</span>
+                </div>
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Figma</span><span>•</span><span>Research</span><span>•</span><span>Prototyping</span><span>•</span><span>Ui/Ux</span><span>•</span>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- PLACEHOLDER CASE STUDY 1 -->
+  <div id="placeholder-1-case" class="case-study-view" data-lenis-prevent>
+    <div class="sticky top-0 z-[1100] bg-white/90 backdrop-blur-md border-b border-white/10 py-4 md:py-6">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 flex justify-between items-center">
+            <button onclick="closeCaseStudy()" class="flex items-center gap-2 group text-[10px] md:text-xs tracking-widest font-bold text-[#006039] hover:text-[#ccff00] transition-colors cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-1 transition-transform md:w-4 md:h-4"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Back to works
+            </button>
+            <span class="text-[8px] md:text-[10px] tracking-[0.3em] font-bold opacity-50 text-[#006039]">Project Category Case Study</span>
+        </div>
+    </div>
+
+    <div class="pb-0">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 pt-16 md:pt-32">
+            <div class="mb-12 md:mb-24">
+                <h1 class="text-[14vw] md:text-[6vw] font-bold tracking-tighter leading-[0.9] mb-6 md:mb-8 cs-reveal text-[#006039]">Project<br/><span class="text-[#006039] opacity-40">Title 01</span></h1>
+                <p class="scroll-reveal text-xl md:text-4xl font-medium tracking-tight opacity-80 text-[#006039] max-w-4xl leading-snug">
+                    A brief description of this awesome placeholder project. Explain the primary value proposition here.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-16 md:mb-24 border-t border-[#006039]/20 pt-8 md:pt-12 cs-reveal">
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Role</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Lead Design<br/>Development</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Timeline</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">2024 - 2025</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Tools</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Tool 1, Tool 2<br/>Tool 3</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Context</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Client Name</span>
+                </div>
+            </div>
+
+            <!-- Full Static Showcase Image Container -->
+            <!-- INSTRUCTION: Save your full presentation board as 'project-1-board.jpg' inside your 'images' folder -->
+            <div class="w-full cs-reveal mb-16 md:mb-32 shadow-xl md:shadow-2xl rounded-xl md:rounded-2xl overflow-hidden border border-[#006039]/10 bg-[#f3f4f6]">
+                <img src="images/project-1-board.jpg" alt="Placeholder 1 Presentation Board" class="w-full h-auto block" />
+            </div>
+        </div>
+        
+        <div class="w-full bg-[#ccff00] py-8 md:py-12 mt-12 overflow-hidden text-[#006039] cs-reveal relative z-10">
+            <div class="w-[200%] flex animate-marquee">
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Tool 1</span><span>•</span><span>Tool 2</span><span>•</span><span>Tool 3</span><span>•</span><span>Tool 4</span><span>•</span>
+                </div>
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Tool 1</span><span>•</span><span>Tool 2</span><span>•</span><span>Tool 3</span><span>•</span><span>Tool 4</span><span>•</span>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- PLACEHOLDER CASE STUDY 2 -->
+  <div id="placeholder-2-case" class="case-study-view" data-lenis-prevent>
+    <div class="sticky top-0 z-[1100] bg-white/90 backdrop-blur-md border-b border-[#006039]/10 py-4 md:py-6">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 flex justify-between items-center">
+            <button onclick="closeCaseStudy()" class="flex items-center gap-2 group text-[10px] md:text-xs tracking-widest font-bold text-[#006039] hover:text-[#ccff00] transition-colors cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-1 transition-transform md:w-4 md:h-4"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Back to works
+            </button>
+            <span class="text-[8px] md:text-[10px] tracking-[0.3em] font-bold opacity-50 text-[#006039]">Project Category Case Study</span>
+        </div>
+    </div>
+
+    <div class="pb-0">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 pt-16 md:pt-32">
+            <div class="mb-12 md:mb-24">
+                <h1 class="text-[14vw] md:text-[6vw] font-bold tracking-tighter leading-[0.9] mb-6 md:mb-8 cs-reveal text-[#006039]">Project<br/><span class="text-[#006039] opacity-40">Title 02</span></h1>
+                <p class="scroll-reveal text-xl md:text-4xl font-medium tracking-tight opacity-80 text-[#006039] max-w-4xl leading-snug">
+                    A brief description of this awesome placeholder project. Explain the primary value proposition here.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-16 md:mb-24 border-t border-[#006039]/20 pt-8 md:pt-12 cs-reveal">
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Role</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Lead Design<br/>Development</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Timeline</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">2024 - 2025</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Tools</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Tool 1, Tool 2<br/>Tool 3</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Context</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Client Name</span>
+                </div>
+            </div>
+
+            <!-- Full Static Showcase Image Container -->
+            <!-- INSTRUCTION: Save your full presentation board as 'project-2-board.jpg' inside your 'images' folder -->
+            <div class="w-full cs-reveal mb-16 md:mb-32 shadow-xl md:shadow-2xl rounded-xl md:rounded-2xl overflow-hidden border border-[#006039]/10 bg-[#f3f4f6]">
+                <img src="images/project-2-board.jpg" alt="Placeholder 2 Presentation Board" class="w-full h-auto block" />
+            </div>
+        </div>
+        
+        <div class="w-full bg-[#ccff00] py-8 md:py-12 mt-12 overflow-hidden text-[#006039] cs-reveal relative z-10">
+            <div class="w-[200%] flex animate-marquee">
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Tool 1</span><span>•</span><span>Tool 2</span><span>•</span><span>Tool 3</span><span>•</span><span>Tool 4</span><span>•</span>
+                </div>
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Tool 1</span><span>•</span><span>Tool 2</span><span>•</span><span>Tool 3</span><span>•</span><span>Tool 4</span><span>•</span>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- PLACEHOLDER CASE STUDY 3 -->
+  <div id="placeholder-3-case" class="case-study-view" data-lenis-prevent>
+    <div class="sticky top-0 z-[1100] bg-white/90 backdrop-blur-md border-b border-white/10 py-4 md:py-6">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 flex justify-between items-center">
+            <button onclick="closeCaseStudy()" class="flex items-center gap-2 group text-[10px] md:text-xs tracking-widest font-bold text-[#006039] hover:text-[#ccff00] transition-colors cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-1 transition-transform md:w-4 md:h-4"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Back to works
+            </button>
+            <span class="text-[8px] md:text-[10px] tracking-[0.3em] font-bold opacity-50 text-[#006039]">Project Category Case Study</span>
+        </div>
+    </div>
+
+    <div class="pb-0">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 pt-16 md:pt-32">
+            <div class="mb-12 md:mb-24">
+                <h1 class="text-[14vw] md:text-[6vw] font-bold tracking-tighter leading-[0.9] mb-6 md:mb-8 cs-reveal text-[#006039]">Project<br/><span class="text-[#006039] opacity-40">Title 03</span></h1>
+                <p class="scroll-reveal text-xl md:text-4xl font-medium tracking-tight opacity-80 text-[#006039] max-w-4xl leading-snug">
+                    A brief description of this awesome placeholder project. Explain the primary value proposition here.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-16 md:mb-24 border-t border-[#006039]/20 pt-8 md:pt-12 cs-reveal">
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Role</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Lead Design<br/>Development</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Timeline</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">2024 - 2025</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Tools</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Tool 1, Tool 2<br/>Tool 3</span>
+                </div>
+                <div>
+                    <span class="block text-[8px] md:text-[10px] tracking-widest font-bold opacity-50 text-[#006039] mb-2 md:mb-3">Context</span>
+                    <span class="block text-sm md:text-lg font-medium leading-tight text-[#006039]">Client Name</span>
+                </div>
+            </div>
+
+            <!-- Full Static Showcase Image Container -->
+            <!-- INSTRUCTION: Save your full presentation board as 'project-3-board.jpg' inside your 'images' folder -->
+            <div class="w-full cs-reveal mb-16 md:mb-32 shadow-xl md:shadow-2xl rounded-xl md:rounded-2xl overflow-hidden border border-[#006039]/10 bg-[#f3f4f6]">
+                <img src="images/project-3-board.jpg" alt="Placeholder 3 Presentation Board" class="w-full h-auto block" />
+            </div>
+        </div>
+        
+        <div class="w-full bg-[#ccff00] py-8 md:py-12 mt-12 overflow-hidden text-[#006039] cs-reveal relative z-10">
+            <div class="w-[200%] flex animate-marquee">
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Tool 1</span><span>•</span><span>Tool 2</span><span>•</span><span>Tool 3</span><span>•</span><span>Tool 4</span><span>•</span>
+                </div>
+                <div class="w-1/2 flex justify-around text-4xl md:text-6xl font-bold tracking-tighter whitespace-nowrap">
+                    <span>Tool 1</span><span>•</span><span>Tool 2</span><span>•</span><span>Tool 3</span><span>•</span><span>Tool 4</span><span>•</span>
                 </div>
             </div>
         </div>
@@ -616,13 +1028,20 @@ With a background in game design, I bring systems thinking and behavioral insigh
   <script>
     let lenisInstance;
     let menuActive = false;
+    let menuBusy = false;
     let csTriggers = []; 
+    let activeCaseId = null;
 
     window.addEventListener("load", () => {
       gsap.registerPlugin(ScrollTrigger);
       lenisInstance = new Lenis({ duration: 1.2, smooth: true });
       lenisInstance.on('scroll', ScrollTrigger.update);
       gsap.ticker.add((time) => { lenisInstance.raf(time * 1000); });
+
+      // Staggered Menu Initial Setup
+      gsap.set(['.sm-layer', '.sm-panel'], { xPercent: 100 });
+      gsap.set('.sm-link-item', { yPercent: 140, rotate: 10 });
+      gsap.set('.sm-fade-item', { opacity: 0, y: 20 });
 
       const greetings = ['Hello', 'வணக்கம்', 'नमस्ते', 'നമസ്കാരം', 'Hola', 'Olá', 'Hallo'];
       const greetingText = document.getElementById('greeting-text');
@@ -640,6 +1059,7 @@ With a background in game design, I bring systems thinking and behavioral insigh
           loader.style.display = 'none';
           app.style.opacity = '1';
           initAnimations();
+          initPillNav();
       }});
 
       function initAnimations() {
@@ -686,6 +1106,13 @@ With a background in game design, I bring systems thinking and behavioral insigh
           toggleClass: { targets: "#navbar", className: "nav-inverted" }
         });
 
+        // Initialize Scroll Reveal Text Effects
+        initScrollReveal();
+
+        // Parallax Effects
+        gsap.to("#hero-image", { yPercent: 15, ease: "none", scrollTrigger: { trigger: "#hero", start: "top top", end: "bottom top", scrub: true } });
+        gsap.to("#pitch-container svg", { yPercent: 35, ease: "none", scrollTrigger: { trigger: "#hero", start: "top top", end: "bottom top", scrub: true } });
+
         document.querySelectorAll('.magnetic').forEach(el => {
           el.addEventListener('mousemove', (e) => {
             const rect = el.getBoundingClientRect();
@@ -712,62 +1139,245 @@ With a background in game design, I bring systems thinking and behavioral insigh
               gsap.to(modalImages, { yPercent: -100 * index, duration: 0.4 });
             });
             row.addEventListener("mouseleave", () => { gsap.to(workModal, { scale: 0, autoAlpha: 0, duration: 0.4 }); });
-            row.addEventListener("click", () => { if(row.getAttribute('data-case') === 'sanzo-wada') openCaseStudy(); });
           });
-        } else {
-            workRows.forEach(row => {
-               row.addEventListener("click", () => { if(row.getAttribute('data-case') === 'sanzo-wada') openCaseStudy(); });
-            });
         }
+        
+        // Multi-case study click handler mapped to IDs
+        workRows.forEach(row => {
+            row.addEventListener("click", () => { 
+                const caseId = row.getAttribute('data-case');
+                if (caseId === 'sanzo-wada') {
+                    openCaseStudy('sanzo-wada-case', 'https://abinesh-k26.github.io/Sanzo-Wada-Color-Combos/');
+                } else if (caseId === 'pet-rescue') {
+                    openCaseStudy('pet-rescue-case', null);
+                } else if (caseId === 'placeholder-1') {
+                    openCaseStudy('placeholder-1-case', null);
+                } else if (caseId === 'placeholder-2') {
+                    openCaseStudy('placeholder-2-case', null);
+                } else if (caseId === 'placeholder-3') {
+                    openCaseStudy('placeholder-3-case', null);
+                }
+            });
+        });
 
         document.querySelectorAll('.scroll-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetId = link.getAttribute('href');
                 if (menuActive) toggleMenu();
-                
-                setTimeout(() => {
-                    lenisInstance.scrollTo(targetId, { offset: 0, duration: 1.5 });
-                }, 100);
+                setTimeout(() => { lenisInstance.scrollTo(targetId, { offset: 0, duration: 1.5 }); }, 100);
             });
         });
       }
     });
 
-    function toggleMenu() {
-        menuActive = !menuActive;
-        const overlay = document.getElementById('menu-overlay');
-        const line1 = document.getElementById('line1');
-        const line2 = document.getElementById('line2');
-        const line3 = document.getElementById('line3');
+    // Scroll Reveal implementation (Vanilla JS port of React Component)
+    function initScrollReveal(scroller = window) {
+        const root = scroller === window ? document : document.querySelector(scroller);
+        if (!root) return;
+        const elements = root.querySelectorAll('.scroll-reveal:not(.revealed)');
 
-        if (menuActive) {
-            overlay.classList.add('active');
-            overlay.style.pointerEvents = 'all';
-            if(lenisInstance) lenisInstance.stop();
-            gsap.to(line1, { attr: { y1: 12, y2: 12 }, rotation: 45, duration: 0.4 });
-            gsap.to(line2, { opacity: 0, duration: 0.3 });
-            gsap.to(line3, { attr: { y1: 12, y2: 12 }, rotation: -45, duration: 0.4 });
-        } else {
-            overlay.classList.remove('active');
-            overlay.style.pointerEvents = 'none';
-            if(lenisInstance) lenisInstance.start();
-            gsap.to(line1, { attr: { y1: 8, y2: 8 }, rotation: 0, duration: 0.4 });
-            gsap.to(line2, { opacity: 1, duration: 0.3 });
-            gsap.to(line3, { attr: { y1: 16, y2: 16 }, rotation: 0, duration: 0.4 });
-        }
+        elements.forEach(el => {
+            el.classList.add('revealed');
+            const text = el.textContent.trim();
+            el.innerHTML = '';
+            
+            const words = text.split(/(\s+)/);
+            words.forEach(word => {
+                if (word.match(/^\s+$/)) {
+                    el.appendChild(document.createTextNode(word));
+                } else {
+                    const span = document.createElement('span');
+                    span.className = 'word';
+                    span.innerText = word;
+                    span.style.opacity = 0.1;
+                    span.style.filter = 'blur(4px)';
+                    span.style.display = 'inline-block';
+                    span.style.willChange = 'opacity, filter';
+                    el.appendChild(span);
+                }
+            });
+
+            const wordEls = el.querySelectorAll('.word');
+
+            let st1 = gsap.fromTo(el,
+                { transformOrigin: '0% 50%', rotate: 3 },
+                {
+                    rotate: 0,
+                    ease: 'none',
+                    scrollTrigger: {
+                        trigger: el,
+                        scroller: scroller,
+                        start: 'top bottom',
+                        end: 'bottom bottom',
+                        scrub: true
+                    }
+                }
+            );
+
+            let st2 = gsap.fromTo(wordEls, 
+                { opacity: 0.1, filter: 'blur(4px)' },
+                {
+                opacity: 1,
+                filter: 'blur(0px)',
+                ease: 'none',
+                stagger: 0.05,
+                scrollTrigger: {
+                    trigger: el,
+                    scroller: scroller,
+                    start: 'top bottom-=20%',
+                    end: 'bottom bottom',
+                    scrub: true
+                }
+            });
+
+            if (scroller !== window) {
+                if (st1.scrollTrigger) csTriggers.push(st1.scrollTrigger);
+                if (st2.scrollTrigger) csTriggers.push(st2.scrollTrigger);
+            }
+        });
     }
 
-    function initCaseStudyScroll() {
-        gsap.utils.toArray('.cs-reveal').forEach(elem => {
+    // PillNav Desktop Menu Logic
+    function initPillNav() {
+        const updatePillLayout = () => {
+            document.querySelectorAll('.pill-item').forEach(pill => {
+                const circle = pill.querySelector('.hover-circle');
+                if (!circle) return;
+                
+                const rect = pill.getBoundingClientRect();
+                const w = rect.width;
+                const h = rect.height;
+                const R = ((w * w) / 4 + h * h) / (2 * h);
+                const D = Math.ceil(2 * R) + 2;
+                const delta = Math.ceil(R - Math.sqrt(Math.max(0, R * R - (w * w) / 4))) + 1;
+                const originY = D - delta;
+
+                circle.style.width = `${D}px`;
+                circle.style.height = `${D}px`;
+                circle.style.bottom = `-${delta}px`;
+                
+                if (!pill._isHovered) {
+                    gsap.set(circle, { xPercent: -50, scale: 0, transformOrigin: `50% ${originY}px` });
+                } else {
+                    gsap.set(circle, { xPercent: -50, transformOrigin: `50% ${originY}px` });
+                }
+            });
+        };
+
+        updatePillLayout();
+        window.addEventListener('resize', updatePillLayout);
+
+        document.querySelectorAll('.pill-item').forEach(pill => {
+            const circle = pill.querySelector('.hover-circle');
+            const label = pill.querySelector('.pill-label');
+            const hoverLabel = pill.querySelector('.pill-label-hover');
+            
+            pill._isHovered = false;
+
+            pill.addEventListener('mouseenter', () => {
+                pill._isHovered = true;
+                const h = pill.getBoundingClientRect().height;
+                gsap.to(circle, { scale: 1.2, duration: 0.4, ease: "power3.out", overwrite: "auto" });
+                gsap.to(label, { y: -(h + 8), duration: 0.4, ease: "power3.out", overwrite: "auto" });
+                gsap.fromTo(hoverLabel, { y: h + 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out", overwrite: "auto" });
+            });
+
+            pill.addEventListener('mouseleave', () => {
+                pill._isHovered = false;
+                const h = pill.getBoundingClientRect().height;
+                gsap.to(circle, { scale: 0, duration: 0.3, ease: "power3.out", overwrite: "auto" });
+                gsap.to(label, { y: 0, duration: 0.3, ease: "power3.out", overwrite: "auto" });
+                gsap.to(hoverLabel, { y: h + 10, opacity: 0, duration: 0.3, ease: "power3.out", overwrite: "auto" });
+            });
+        });
+    }
+
+    // Staggered Menu Toggle Logic
+    window.toggleMenu = function() {
+        if (menuBusy) return;
+        menuBusy = true;
+        menuActive = !menuActive;
+
+        const menuWrapper = document.getElementById('staggered-menu');
+        const layers = gsap.utils.toArray('.sm-layer');
+        const panel = document.querySelector('.sm-panel');
+        const linkItems = gsap.utils.toArray('.sm-link-item');
+        const fadeItems = gsap.utils.toArray('.sm-fade-item');
+        const icon = document.getElementById('sm-icon');
+        const textInner = document.getElementById('toggle-text-inner');
+
+        if (menuActive) {
+            // OPENING
+            menuWrapper.style.pointerEvents = 'all';
+            if(lenisInstance) lenisInstance.stop();
+
+            gsap.set(linkItems, { yPercent: 140, rotate: 10 });
+            gsap.set(fadeItems, { opacity: 0, y: 20 });
+
+            const tl = gsap.timeline({ onComplete: () => menuBusy = false });
+
+            layers.forEach((layer, i) => {
+                tl.fromTo(layer, { xPercent: 100 }, { xPercent: 0, duration: 0.5, ease: 'power4.out' }, i * 0.07);
+            });
+            
+            const panelStart = (layers.length * 0.07) + 0.08;
+            tl.fromTo(panel, { xPercent: 100 }, { xPercent: 0, duration: 0.65, ease: 'power4.out' }, panelStart);
+
+            tl.to(linkItems, {
+                yPercent: 0,
+                rotate: 0,
+                duration: 1,
+                ease: 'power4.out',
+                stagger: 0.1
+            }, panelStart + 0.1);
+
+            tl.to(fadeItems, {
+                opacity: 1,
+                y: 0,
+                duration: 0.5,
+                ease: 'power2.out',
+                stagger: 0.1
+            }, panelStart + 0.3);
+
+            gsap.to(icon, { rotate: 225, duration: 0.8, ease: 'power4.out' });
+            gsap.to(textInner, { yPercent: -50, duration: 0.5, ease: 'power4.out' });
+
+        } else {
+            // CLOSING
+            const tl = gsap.timeline({ 
+                onComplete: () => {
+                    menuWrapper.style.pointerEvents = 'none';
+                    if(lenisInstance) lenisInstance.start();
+                    menuBusy = false;
+                } 
+            });
+
+            tl.to([panel, ...layers.reverse()], {
+                xPercent: 100,
+                duration: 0.4,
+                ease: 'power3.inOut',
+                stagger: 0.05
+            });
+
+            gsap.to(icon, { rotate: 0, duration: 0.4, ease: 'power3.inOut' });
+            gsap.to(textInner, { yPercent: 0, duration: 0.4, ease: 'power3.inOut' });
+        }
+    };
+
+    function initCaseStudyScroll(containerId) {
+        const scroller = `#${containerId}`;
+        gsap.utils.toArray(`${scroller} .cs-reveal`).forEach(elem => {
             let st = ScrollTrigger.create({
                 trigger: elem,
-                scroller: "#sanzo-wada-case",
+                scroller: scroller,
                 start: "top 90%",
                 onEnter: () => gsap.to(elem, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }),
             });
             csTriggers.push(st);
         });
+        // Initialize dynamic word-by-word parallax inside case studies
+        initScrollReveal(scroller);
     }
 
     function killCaseStudyScroll() {
@@ -776,25 +1386,49 @@ With a background in game design, I bring systems thinking and behavioral insigh
         gsap.set('.cs-reveal', { y: 40, opacity: 0 });
     }
 
-    function openCaseStudy() {
-        const view = document.getElementById('sanzo-wada-case');
+    function openCaseStudy(caseId, liveLink) {
+        activeCaseId = caseId;
+        const view = document.getElementById(caseId);
+        
+        if (!view) {
+            console.error('Case study view not found for ID:', caseId);
+            return;
+        }
+        
         const fab = document.getElementById('cs-fab');
+        const fabAnchor = fab.querySelector('a');
+        
         view.style.display = 'block';
         if (lenisInstance) lenisInstance.stop();
-        gsap.fromTo(view, { y: '100%' }, { y: '0%', duration: 1, ease: "expo.inOut", onComplete: initCaseStudyScroll });
-        gsap.to(fab, { scale: 1, opacity: 1, pointerEvents: "all", duration: 0.8, ease: "back.out(1.5)", delay: 0.6 });
+        
+        // Manage FAB based on live link
+        if (liveLink) {
+            fabAnchor.href = liveLink;
+            fab.style.display = 'block';
+            gsap.to(fab, { scale: 1, opacity: 1, pointerEvents: "all", duration: 0.8, ease: "back.out(1.5)", delay: 0.6 });
+        } else {
+            fab.style.display = 'none';
+        }
+
+        gsap.fromTo(view, { y: '100%' }, { y: '0%', duration: 1, ease: "expo.inOut", onComplete: () => initCaseStudyScroll(caseId) });
         document.body.classList.add('lenis-stopped');
     }
 
     function closeCaseStudy() {
-        const view = document.getElementById('sanzo-wada-case');
+        if(!activeCaseId) return;
+        const view = document.getElementById(activeCaseId);
         const fab = document.getElementById('cs-fab');
         killCaseStudyScroll();
-        gsap.to(fab, { scale: 0, opacity: 0, pointerEvents: "none", duration: 0.4 });
+        
+        if (fab.style.display !== 'none') {
+            gsap.to(fab, { scale: 0, opacity: 0, pointerEvents: "none", duration: 0.4 });
+        }
+
         gsap.to(view, { y: '100%', duration: 0.8, ease: "expo.inOut", onComplete: () => {
             view.style.display = 'none';
             document.body.classList.remove('lenis-stopped');
             if (lenisInstance) lenisInstance.start();
+            activeCaseId = null;
         }});
     }
 
@@ -817,4 +1451,3 @@ With a background in game design, I bring systems thinking and behavioral insigh
   </script>
 </body>
 </html>
-
